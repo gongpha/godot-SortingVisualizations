@@ -1,0 +1,140 @@
+[gd_scene load_steps=6 format=2]
+
+[ext_resource path="res://sorting/sorting_visualization.tscn" type="PackedScene" id=1]
+[ext_resource path="res://theme_dark.tres" type="Theme" id=2]
+[ext_resource path="res://sorting/sorting_interface.gd" type="Script" id=3]
+[ext_resource path="res://plat.ttf" type="DynamicFontData" id=4]
+
+[sub_resource type="DynamicFont" id=1]
+font_data = ExtResource( 4 )
+
+[node name="panel" type="Panel"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+theme = ExtResource( 2 )
+script = ExtResource( 3 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="vbox" type="VBoxContainer" parent="."]
+anchor_right = 1.0
+anchor_bottom = 1.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="margin" type="MarginContainer" parent="vbox"]
+margin_right = 1024.0
+margin_bottom = 102.0
+custom_constants/margin_right = 10
+custom_constants/margin_top = 10
+custom_constants/margin_left = 10
+custom_constants/margin_bottom = 10
+
+[node name="vbox" type="VBoxContainer" parent="vbox/margin"]
+margin_left = 10.0
+margin_top = 10.0
+margin_right = 1014.0
+margin_bottom = 92.0
+
+[node name="hbox" type="HBoxContainer" parent="vbox/margin/vbox"]
+margin_right = 1004.0
+margin_bottom = 36.0
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="count" type="SpinBox" parent="vbox/margin/vbox/hbox"]
+margin_right = 200.0
+margin_bottom = 36.0
+rect_min_size = Vector2( 200, 0 )
+max_value = 3840.0
+align = 1
+prefix = "n ="
+
+[node name="max" type="SpinBox" parent="vbox/margin/vbox/hbox"]
+margin_left = 210.0
+margin_right = 410.0
+margin_bottom = 36.0
+rect_min_size = Vector2( 200, 0 )
+max_value = 131072.0
+align = 1
+prefix = "max ="
+
+[node name="use_width" type="CheckBox" parent="vbox/margin/vbox/hbox"]
+margin_left = 420.0
+margin_right = 533.0
+margin_bottom = 36.0
+text = "Use Width"
+flat = true
+
+[node name="rand" type="Button" parent="vbox/margin/vbox/hbox"]
+margin_left = 543.0
+margin_right = 622.0
+margin_bottom = 36.0
+text = "Random"
+
+[node name="randl" type="Button" parent="vbox/margin/vbox/hbox"]
+margin_left = 632.0
+margin_right = 770.0
+margin_bottom = 36.0
+text = "Random Linear"
+
+[node name="sort" type="OptionButton" parent="vbox/margin/vbox/hbox"]
+margin_left = 780.0
+margin_right = 931.0
+margin_bottom = 36.0
+text = "Selection Sort"
+items = [ "Selection Sort", null, false, 0, false, "Insertion Sort", null, false, 0, false, "Bubble Sort", null, false, 0, false, "Quick Sort", null, false, 0, false, "Merge Sort", null, false, 0, false ]
+selected = 0
+
+[node name="hbox2" type="HBoxContainer" parent="vbox/margin/vbox"]
+margin_top = 46.0
+margin_right = 1004.0
+margin_bottom = 82.0
+
+[node name="play" type="Button" parent="vbox/margin/vbox/hbox2"]
+margin_right = 49.0
+margin_bottom = 36.0
+text = "Play"
+
+[node name="delay_text" type="Label" parent="vbox/margin/vbox/hbox2"]
+margin_left = 59.0
+margin_top = 8.0
+margin_right = 114.0
+margin_bottom = 28.0
+text = "Delay :"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="delay" type="SpinBox" parent="vbox/margin/vbox/hbox2"]
+margin_left = 124.0
+margin_right = 228.0
+margin_bottom = 36.0
+rect_min_size = Vector2( 64, 0 )
+max_value = 3000.0
+align = 1
+suffix = "ms"
+
+[node name="sort" parent="vbox" instance=ExtResource( 1 )]
+anchor_right = 0.0
+anchor_bottom = 0.0
+margin_top = 112.0
+margin_right = 1024.0
+margin_bottom = 600.0
+size_flags_vertical = 3
+font = SubResource( 1 )
+
+[connection signal="value_changed" from="vbox/margin/vbox/hbox/count" to="." method="_on_count_value_changed"]
+[connection signal="value_changed" from="vbox/margin/vbox/hbox/max" to="." method="_on_max_value_changed"]
+[connection signal="toggled" from="vbox/margin/vbox/hbox/use_width" to="." method="_on_use_width_toggled"]
+[connection signal="pressed" from="vbox/margin/vbox/hbox/rand" to="." method="_on_rand_pressed"]
+[connection signal="pressed" from="vbox/margin/vbox/hbox/randl" to="." method="_on_randl_pressed"]
+[connection signal="pressed" from="vbox/margin/vbox/hbox2/play" to="." method="_on_play_pressed"]
+[connection signal="value_changed" from="vbox/margin/vbox/hbox2/delay" to="." method="_on_delay_value_changed"]
+[connection signal="end_sorting" from="vbox/sort" to="." method="_on_sort_end_sorting"]
+[connection signal="start_sorting" from="vbox/sort" to="." method="_on_sort_start_sorting"]
