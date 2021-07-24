@@ -6,6 +6,17 @@ export(int) var item_count : int = 30
 export(int) var item_max_value : int = 100
 export(Font) var font : Font
 export(int) var msec_delay : int = 30 setget set_msec_delay
+export(bool) var play_tones : bool = false
+
+onready var audio_player : AudioStreamPlayer = $asp
+var audio_playback : AudioStreamGeneratorPlayback
+
+const MIN_PULSE : float = 440.0
+const MAX_PULSE : float = 900.0
+const SAMPLE : float = 22050.0
+var current_pulse : float = 0
+var current_phase : float = 0.0
+
 
 enum {
 	SELECTION,
@@ -33,11 +44,21 @@ func set_msec_delay(new_d : int) -> void :
 	mutex.lock()
 	msec_delay = new_d
 	mutex.unlock()
+	
+func _prepare_buffer() :
+	var to_fill := audio_playback.get_frames_available()
+	while to_fill > 0:
+		audio_playback.push_frame(Vector2.ONE * sin(current_phase * TAU))
+		current_phase = fmod(current_phase + (current_pulse / SAMPLE), 1.0)
+		to_fill -= 1
 
 func _ready() :
-	Engine.iterations_per_second = 120
+	#Engine.iterations_per_second = 120
 	thread = Thread.new()
 	mutex = Mutex.new()
+	
+	audio_player.stream.mix_rate = SAMPLE # GDSCRIPT
+	audio_playback = audio_player.get_stream_playback()
 
 func array_random(unique : bool) :
 	array.clear()
@@ -127,6 +148,10 @@ func sort(which : int) :
 			thread.start(self, "heap_sort")
 		RADIX_LSD :
 			thread.start(self, "radix_sort_lsd")
+		
+	if play_tones :
+		_prepare_buffer()
+		audio_player.play()
 			
 func stop() :
 	mutex.lock()
@@ -143,7 +168,8 @@ func thread_array_set_color_a(ia : Array, col : Color) :
 	ia[1] = col
 	mutex.unlock()
 	
-func thread_sleep() :
+func thread_sleep(i : int) :
+	thread_hint_item(i)
 	if msec_delay > 0 :
 		OS.delay_msec(msec_delay)
 		
@@ -159,11 +185,27 @@ func thread_sort_done() :
 	current_sorting = -1
 	cancel_flag = false
 	update()
+	if play_tones :
+		audio_player.stop()
 	emit_signal("end_sorting")
+	
+func thread_hint_item(idx : int) :
+	mutex.lock()
+	current_pulse = lerp(MIN_PULSE, MAX_PULSE, array[idx][0] / float(item_max_value))
+	#print(idx)
+	
+	if play_tones :
+		if audio_player.playing :
+			_prepare_buffer()
+		
+	mutex.unlock()
+	
 	
 func _process(delta : float) :
 	if current_sorting != -1 :
 		update()
+		
+	
 	
 ###########################################################
 ###########################################################
@@ -176,23 +218,17 @@ func selection_sort(u) :
 			if cancel_flag :
 				call_deferred("thread_sort_done")
 				return
-			#sortv.call_deferred("array_set_color", j, Color.cyan)
+				
 			thread_array_set_color(j, Color.cyan)
-			#ortv.call_deferred("update")
-			thread_sleep()
-			#if j - 1 > 0 :
-			#	sortv.call_deferred("array_set_color", j - 1, Color.white)
+			
+			thread_sleep(j)
 			
 			if array[min_idx][0] > array[j][0] :
 				thread_array_set_color(min_idx, Color.white)
-				#sortv.call_deferred("array_set_color", min_idx, Color.white)
 				min_idx = j
 				thread_array_set_color(min_idx, Color.red)
-				#sortv.call_deferred("array_set_color", min_idx, Color.red)
 			else :
 				thread_array_set_color(j, Color.white)
-				#sortv.call_deferred("array_set_color", j, Color.white)
-			#sortv.call_deferred("update")
 				   
 		thread_swap(array, i, min_idx)
 		thread_array_set_color(i, Color.white)
@@ -211,7 +247,7 @@ func insertion_sort(u) :
 		thread_array_set_color(i, Color.white)
 		var j : int = i - 1
 		while j >= 0 and key[0] <= array[j][0] :
-			thread_sleep()
+			thread_sleep(j)
 			thread_array_set_color_a(key, Color.red)
 			thread_swap(array, j, j + 1)
 			j -= 1
@@ -227,7 +263,7 @@ func bubble_sort(u) :
 		for j in range(array.size() - i - 1) :
 			if array[j][0] > array[j + 1][0] :
 				thread_array_set_color(j, Color.red)
-				thread_sleep()
+				thread_sleep(j)
 				thread_array_set_color(j, Color.white)
 				thread_swap(array, j, j + 1)
 	call_deferred("thread_sort_done")
@@ -246,7 +282,7 @@ func cocktail_shaker_sort(u) :
 		for i in range(start, end) :
 			if array[i][0] > array[i + 1][0] :
 				thread_array_set_color(i, Color.red)
-				thread_sleep()
+				thread_sleep(i)
 				thread_array_set_color(i, Color.white)
 				thread_swap(array, i, i + 1)
 				swapped = true
@@ -258,7 +294,7 @@ func cocktail_shaker_sort(u) :
 		while i >= start :
 			if array[i][0] > array[i + 1][0] :
 				thread_array_set_color(i, Color.red)
-				thread_sleep()
+				thread_sleep(i)
 				thread_array_set_color(i, Color.white)
 				thread_swap(array, i, i + 1)
 				swapped = true
@@ -277,7 +313,7 @@ func quick_select_pivot(lo : int, hi : int) :
 			
 		if array[j][0] <= pivot[0] :
 			thread_array_set_color(j, Color.cyan)
-			thread_sleep()
+			thread_sleep(j)
 			thread_array_set_color(j, Color.white)
 			i += 1
 			thread_swap(array, i, j)
@@ -343,7 +379,7 @@ func merge_element(lo : int, mid : int, hi : int) -> bool :
 	while i < hi - lo :
 		if i <= mid :
 			thread_array_set_color(mid, Color.cyan)
-		thread_sleep()
+		thread_sleep(i)
 		thread_array_set_color_a(out[i], Color.white)
 		array[lo + i] = out[i]
 		i += 1
@@ -387,7 +423,7 @@ func heap_sort(u) :
 				call_deferred("thread_sort_done")
 				return
 			thread_array_set_color(0, Color.cyan)
-			thread_sleep()
+			thread_sleep(0)
 			thread_array_set_color(0, Color.white)
 			thread_swap(array, 0, n)
 			
@@ -403,7 +439,7 @@ func heap_sort(u) :
 				child += 1
 			if array[child][0] > array[parent][0] :
 				thread_array_set_color(parent, Color.cyan)
-				thread_sleep()
+				thread_sleep(parent)
 				thread_array_set_color(parent, Color.white)
 				thread_swap(array, parent, child)
 				parent = child
@@ -427,7 +463,7 @@ func count_sort(exp_ : int) :
 	i = 0
 	while i < array.size() :
 		thread_array_set_color(i, Color.cyan)
-		thread_sleep()
+		thread_sleep(i)
 		thread_array_set_color(i, Color.white)
 		count[(array[i][0] / exp_) % 10] += 1
 		i += 1
@@ -447,7 +483,7 @@ func count_sort(exp_ : int) :
 	i = 0
 	while i < array.size() :
 		thread_array_set_color(i, Color.red)
-		thread_sleep()
+		thread_sleep(i)
 		thread_array_set_color(i, Color.white)
 		array[i][0] = output[i]
 		i += 1
