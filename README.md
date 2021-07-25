@@ -1,5 +1,5 @@
 # SortingVisualizations
-Simple Multihreaded Sorting Visualization on Godot 3.x with Multithreading
+Simple Sorting Visualization on Godot 3.x with Multithreading
 
 ## Algorithms :
  - Selection Sort
