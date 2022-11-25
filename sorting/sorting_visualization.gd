@@ -26,7 +26,8 @@ enum {
 	QUICK,
 	MERGE,
 	HEAP,
-	RADIX_LSD
+	RADIX_LSD,
+	BOGO
 }
 
 var current_sorting : int = -1
@@ -48,7 +49,7 @@ func set_msec_delay(new_d : int) -> void :
 func _prepare_buffer() :
 	var to_fill := audio_playback.get_frames_available()
 	while to_fill > 0:
-		audio_playback.push_frame(Vector2.ONE * sin(current_phase * TAU))
+		audio_playback.push_frame(Vector2.ONE * sign(sin(current_phase * TAU)))
 		current_phase = fmod(current_phase + (current_pulse / SAMPLE), 1.0)
 		to_fill -= 1
 
@@ -148,6 +149,8 @@ func sort(which : int) :
 			thread.start(self, "heap_sort")
 		RADIX_LSD :
 			thread.start(self, "radix_sort_lsd")
+		BOGO :
+			thread.start(self, "bogo_sort")
 		
 	if play_tones :
 		_prepare_buffer()
@@ -511,3 +514,25 @@ func radix_sort_lsd(u) :
 		count_sort(exp_)
 		exp_ *= 10
 	call_deferred("thread_sort_done")
+
+func bogo_sort(u) :
+	while true :
+		if cancel_flag :
+			call_deferred("thread_sort_done")
+			return
+		array.shuffle()
+		var i := 0
+		var f = array[i]
+		var failed := false
+		thread_sleep(0)
+		while i < array.size() - 1 :
+			i += 1
+			if f > array[i] :
+				failed = true
+				break
+			f = array[i]
+		if failed :
+			continue
+		break
+	call_deferred("thread_sort_done")
+	return

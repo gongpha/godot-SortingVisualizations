@@ -89,7 +89,7 @@ margin_left = 771.0
 margin_right = 889.0
 margin_bottom = 30.0
 text = "Selection Sort"
-items = [ "Selection Sort", null, false, 0, false, "Insertion Sort", null, false, 0, false, "Bubble Sort", null, false, 0, false, "Cocktail Shaker Sort", null, false, 0, false, "Quick Sort", null, false, 0, false, "Merge Sort", null, false, 5, null, "Heap Sort", null, false, 6, null, "Radix Sort (LSD)", null, false, 8, null ]
+items = [ "Selection Sort", null, false, 0, false, "Insertion Sort", null, false, 0, false, "Bubble Sort", null, false, 0, false, "Cocktail Shaker Sort", null, false, 0, false, "Quick Sort", null, false, 0, false, "Merge Sort", null, false, 5, null, "Heap Sort", null, false, 6, null, "Radix Sort (LSD)", null, false, 8, null, "Bogo Sort", null, false, 8, null ]
 selected = 0
 
 [node name="hbox2" type="HBoxContainer" parent="vbox/margin/vbox"]
@@ -135,6 +135,7 @@ margin_top = 100.0
 margin_right = 1024.0
 margin_bottom = 600.0
 size_flags_vertical = 3
+play_tones = true
 
 [connection signal="value_changed" from="vbox/margin/vbox/hbox/count" to="." method="_on_count_value_changed"]
 [connection signal="value_changed" from="vbox/margin/vbox/hbox/max" to="." method="_on_max_value_changed"]
